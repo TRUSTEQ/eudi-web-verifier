@@ -31,7 +31,8 @@
         (click)="proceedToInvokeWallet()"
         [disabled]="!canSubmit()"
       >
-        {{ 'home.verifyBtn' | translate }}
+        <span *ngIf="isSubmitting" class="btn-spinner" aria-hidden="true"></span>
+        {{ (isSubmitting ? 'actions.loading' : 'home.verifyBtn') | translate }}
       </button>
     </div>
 
@@ -145,7 +146,8 @@
                   (click)="proceedToInvokeWallet()"
                   [disabled]="!canSubmit()"
                 >
-                  {{ 'home.submitBtn' | translate }}
+                  <span *ngIf="isSubmitting" class="btn-spinner" aria-hidden="true"></span>
+                  {{ (isSubmitting ? 'actions.loading' : 'home.submitBtn') | translate }}
                 </button>
               </div>
 

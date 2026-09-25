@@ -94,6 +94,26 @@
     padding: 0px 2px;
   }
 
+  // Shown next to the Verify/Submit buttons' own label while isSubmitting
+  // is true (see home.component.ts) - initializeRedirectsTransaction/
+  // initializeDcApiTransaction make a real POST to create the presentation
+  // transaction before navigating to invoke-wallet, and previously gave no
+  // feedback at all for that wait.
+  .btn-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: btn-spin 700ms linear infinite;
+    margin-right: 8px;
+    vertical-align: -2px;
+  }
+  @keyframes btn-spin {
+    to { transform: rotate(360deg); }
+  }
+
   mat-step {
     div {
       display: block;

@@ -69,11 +69,15 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   initializePresentationTransaction() {
     if (this.requestCode) {
+      this.setNextButtonSubmitting(true);
       if (this.submissionMethod === 'dc-api') {
         let request = JSON.parse(this.requestCode) as DCApiTransactionInitializationRequest;
         this.verifierEndpointService.initializeDcApiTransaction(request, (_) => {
           this.hideNextStep();
           this.navigateService.navigateTo('/custom-request/invoke');
+          this.changeDetectorRef.detectChanges();
+        }, (_) => {
+          this.setNextButtonSubmitting(false);
           this.changeDetectorRef.detectChanges();
         });
       } else {
@@ -82,11 +86,27 @@ export class HomeComponent implements OnInit, OnDestroy {
           this.hideNextStep();
           this.navigateService.navigateTo('/custom-request/invoke');
           this.changeDetectorRef.detectChanges();
+        }, (_) => {
+          this.setNextButtonSubmitting(false);
+          this.changeDetectorRef.detectChanges();
         });
       }
     } else {
       console.error('invalid JSON format');
     }
+  }
+
+  // Drives vc-button's own (already-built but previously unused) loading
+  // label/disabled state - see button.component.ts's `mode` input - for
+  // as long as initializePresentationTransaction()'s own backend call is
+  // in flight, since there was previously no feedback at all for that
+  // real POST before either navigating away or (silently) failing.
+  private setNextButtonSubmitting(submitting: boolean) {
+    this.actions = this.actions.map((item: BodyAction) =>
+      item.code === ActionCode.NEXT
+        ? { ...item, disabled: submitting, mode: submitting ? 'loading' : 'none' }
+        : item
+    );
   }
 
   private disableNextButton(code: string) {

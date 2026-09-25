@@ -34,7 +34,13 @@ export class VerifierEndpointService {
   ) {
   }
 
-  initializeRedirectsTransaction(initializationRequest: RedirectsTransactionInitializationRequest, callback: (value: InitializedTransaction) => void) {
+  // errorCallback is optional (existing callers before it are unaffected) -
+  // added so a caller driving a loading/disabled UI state (see home.component.ts's
+  // isSubmitting) has a way to reset it if the request fails, rather than
+  // being stuck disabled forever: NetworkRequest's own interceptor already
+  // logs and rethrows HttpErrorResponses, which a bare .subscribe(callback)
+  // (single-arg = next-only) would otherwise leave uncaught here.
+  initializeRedirectsTransaction(initializationRequest: RedirectsTransactionInitializationRequest, callback: (value: InitializedTransaction) => void, errorCallback?: (error: unknown) => void) {
     if (initializationRequest) {
       const payload: any = {...initializationRequest};
       if (!this.deviceDetectorService.isDesktop()) {
@@ -49,11 +55,11 @@ export class VerifierEndpointService {
             }
             this.localStorageService.set(constants.ACTIVE_TRANSACTION, JSON.stringify(activeTransaction));
           })
-        ).subscribe(callback);
+        ).subscribe({next: callback, error: errorCallback ?? (() => {})});
     }
   }
 
-  initializeDcApiTransaction(initializationRequest: DCApiTransactionInitializationRequest, callback: (value: InitializedTransaction) => void) {
+  initializeDcApiTransaction(initializationRequest: DCApiTransactionInitializationRequest, callback: (value: InitializedTransaction) => void, errorCallback?: (error: unknown) => void) {
     if (initializationRequest) {
       this.httpService.post<DcApiTransaction, DCApiTransactionInitializationRequest>(INIT_DC_API_TRANSACTION_ENDPOINT, initializationRequest)
         .pipe(
@@ -64,7 +70,7 @@ export class VerifierEndpointService {
             }
             this.localStorageService.set(constants.ACTIVE_TRANSACTION, JSON.stringify(activeTransaction));
           })
-        ).subscribe(callback);
+        ).subscribe({next: callback, error: errorCallback ?? (() => {})});
     }
   }
 

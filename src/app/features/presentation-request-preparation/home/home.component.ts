@@ -329,10 +329,14 @@ export class HomeComponent implements OnDestroy {
 
   proceedToInvokeWalletOverRedirects() {
     if (this.initializationRequest != null) {
+      this.isSubmitting = true;
       this.verifierEndpointService.initializeRedirectsTransaction(
         this.initializationRequest as RedirectsTransactionInitializationRequest,
         (_) => {
           this.navigateService.navigateTo('invoke-wallet');
+        },
+        (_) => {
+          this.isSubmitting = false;
         }
       );
     } else {
@@ -342,10 +346,14 @@ export class HomeComponent implements OnDestroy {
 
   proceedToInvokeWalletOverDcApi() {
     if (this.initializationRequest != null) {
+      this.isSubmitting = true;
       this.verifierEndpointService.initializeDcApiTransaction(
         this.initializationRequest as DCApiTransactionInitializationRequest,
         (_) => {
           this.navigateService.navigateTo('invoke-wallet');
+        },
+        (_) => {
+          this.isSubmitting = false;
         }
       );
     } else {
@@ -382,6 +390,14 @@ export class HomeComponent implements OnDestroy {
     );
   }
 
+  // Set for the duration of proceedToInvokeWallet()'s own backend call
+  // (initializeRedirectsTransaction/initializeDcApiTransaction - a real
+  // POST that creates the presentation transaction) - drives the Verify
+  // button's disabled+spinner state below, since there was previously no
+  // feedback at all between clicking it and either the invoke-wallet
+  // redirect or, on failure, nothing visibly happening.
+  isSubmitting = false;
+
   canProceed() {
     return this.initializationRequest !== null;
   }
@@ -395,6 +411,9 @@ export class HomeComponent implements OnDestroy {
   }
 
   canSubmit(): boolean {
+    if (this.isSubmitting) {
+      return false;
+    }
     if (this.requestMode === 'dc-api') {
       return this.canProceed() && this.dcApiSupported;
     }
